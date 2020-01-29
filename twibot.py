@@ -46,6 +46,7 @@ class twibot:
             self.api.create_friendship(user)
             time.sleep(random.randint(1,720))
         self.app.t1 == None
+        self.app.follow_button.setEnabled(True)
 
     def follow_users_from_handle(self, handle, limit):
         lst = self.api.followers(handle)
@@ -62,4 +63,7 @@ class twibot:
             self.api.create_friendship(user)
             time.sleep(random.randint(1, 720))
         self.app.t1 == None
+        self.app.follow_button2.setEnabled(True)
+
+
 

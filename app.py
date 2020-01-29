@@ -83,6 +83,7 @@ class application(QTabWidget):
 
 
     def follow_ret(self):
+        self.follow_button.setEnabled(False)
         self.link_result.setText("")
         if self.bot is None:
             self.link_result.setText("Configure access keys in set keys tab")
@@ -100,6 +101,7 @@ class application(QTabWidget):
             self.link_result.setText("Could not find tweet")
 
     def follow_fol(self):
+        self.follow_button2.setEnabled(False)
         self.handle_result.setText("")
         if self.bot is None:
             self.handle_result.setText("Configure access keys in set keys tab")
