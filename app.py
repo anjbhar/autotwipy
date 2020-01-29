@@ -138,12 +138,13 @@ class application(QTabWidget):
         layout.addRow("Auth token secret", self.edit_4)
         self.set_button.clicked.connect(self.set_keys)
         l = self.read_file()
-        if len(l) == 4:
-            self.edit_1.setText(l[0])
-            self.edit_2.setText(l[1])
-            self.edit_3.setText(l[2])
-            self.edit_4.setText(l[3])
-            self.set_keys()
+        if l is not None:
+            if len(l) == 4:
+                self.edit_1.setText(l[0])
+                self.edit_2.setText(l[1])
+                self.edit_3.setText(l[2])
+                self.edit_4.setText(l[3])
+                self.set_keys()
         layout.addRow(self.result)
         self.result.setAlignment(Qt.AlignCenter)
         layout.addRow(self.set_button)
