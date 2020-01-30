@@ -15,7 +15,7 @@ class follow:
         self.api = tweepy.API(self.auth)
         self.app = app
         try:
-            me = self.api.me()
+            self.me = self.api.me()
         except:
             raise("Error")
 
@@ -35,21 +35,17 @@ class follow:
         retweeters = self.api.retweeters(id_tweet)
         count = 0
         self.app.logger.appendPlainText(f"Following retweeters of {link}")
-        for user in retweeters:
+        for u in retweeters:
+            user = self.api.get_user(u)
             if count == limit:
                 self.app.logger.appendPlainText("Sleeping...")
                 time.sleep(26500)
                 count = 0
-            status = self.api.show_friendship(self.api.me, user)
-            if status[0] is False and status[1] is True:
-                self.app.logger.appendPlainText(f"{user.screen_name} is already following you")
-            if status[0] is True:
-                self.app.logger.appendPlainText(f"already following {user.screen_name}")
-            elif status[0] is False:
-                mes = str(f"{self.get_time}: following: {user.screen_name}")
-                self.app.logger.appendPlainText(mes)
-                self.api.create_friendship(user)
-                time.sleep(random.randint(1, 720))
+            t = self.get_time()
+            mes = str(f"{t}: following {user.screen_name}")
+            self.app.logger.appendPlainText(mes)
+            self.api.create_friendship(u)
+            time.sleep(random.randint(1, 720))
 
         self.app.t1 == None
         self.app.follow_button.setEnabled(True)
@@ -64,12 +60,6 @@ class follow:
                 self.app.logger.appendPlainText("Sleeping...")
                 time.sleep(26500)
                 count = 0
-            status = self.api.show_friendship(self.api.me, user)
-            if status[0] is False and status[1] is True:
-                self.app.logger.appendPlainText(f"{user.screen_name} is already following you")
-            if status[0] is True:
-                self.app.logger.appendPlainText(f"already following {user.screen_name}")
-            elif status[0] is False:
                 mes = str(f"{self.get_time}: following: {user.screen_name}")
                 self.app.logger.appendPlainText(mes)
                 self.api.create_friendship(user)
@@ -83,3 +73,12 @@ class follow:
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         return current_time
+
+    def check_follow(self, id_source, id_target):
+        status = self.api.show_friendship(source_id=id_source, target_id=id_target)
+        if status[0] is False and status[1] is True:
+            return False
+        if status[0] is True:
+            return False
+        elif status[0] is False:
+            return True
