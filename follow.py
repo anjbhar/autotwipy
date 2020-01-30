@@ -3,6 +3,7 @@ import random
 import time
 from datetime import datetime
 
+
 class follow:
 
     def __init__(self, one, two, three, four, app):
@@ -17,7 +18,7 @@ class follow:
         try:
             self.me = self.api.me()
         except:
-            raise("Error")
+            raise ("Error")
 
     def add_keys(self, one, two, three, four):
         self.consumer_key = one
@@ -41,11 +42,15 @@ class follow:
                 self.app.logger.appendPlainText("Sleeping...")
                 time.sleep(26500)
                 count = 0
-            t = self.get_time()
-            mes = str(f"{t}: following {user.screen_name}")
-            self.app.logger.appendPlainText(mes)
-            self.api.create_friendship(u)
-            time.sleep(random.randint(1, 720))
+            b = self.check_follow(self.me.id, u)
+            if b is True:
+                t = self.get_time()
+                mes = str(f"{t}: following {user.screen_name}")
+                self.app.logger.appendPlainText(mes)
+                self.api.create_friendship(u)
+                time.sleep(random.randint(1, 720))
+            else:
+                self.app.logger.appendPlainText(f"friendship already exists with {user.screen_name}")
 
         self.app.t1 == None
         self.app.follow_button.setEnabled(True)
@@ -60,14 +65,18 @@ class follow:
                 self.app.logger.appendPlainText("Sleeping...")
                 time.sleep(26500)
                 count = 0
-                mes = str(f"{self.get_time}: following: {user.screen_name}")
+            b = self.check_follow(self.me.id, user.id)
+            if b is True:
+                t = self.get_time()
+                mes = str(f"{t}: following: {user.screen_name}")
                 self.app.logger.appendPlainText(mes)
                 self.api.create_friendship(user)
                 time.sleep(random.randint(1, 720))
+            else:
+                self.app.logger.appendPlainText(f"friendship already exists with {user.screen_name}")
 
         self.app.t1 == None
         self.app.follow_button2.setEnabled(True)
-
 
     def get_time(self):
         now = datetime.now()
