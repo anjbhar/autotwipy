@@ -1,9 +1,9 @@
 import tweepy
 import random
 import time
+from datetime import datetime
 
-
-class twibot:
+class follow:
 
     def __init__(self, one, two, three, four, app):
         self.consumer_key = one
@@ -40,8 +40,7 @@ class twibot:
                 self.app.logger.appendPlainText("Sleeping...")
                 time.sleep(26500)
                 count = 0
-            print("following", user)
-            mes = str(f"following: {user}")
+            mes = str(f"{self.get_time}: following: {user}")
             self.app.logger.appendPlainText(mes)
             self.api.create_friendship(user)
             time.sleep(random.randint(1,720))
@@ -58,7 +57,7 @@ class twibot:
                 self.app.logger.appendPlainText("Sleeping...")
                 time.sleep(26500)
                 count = 0
-            mes = str(f"following: {user}")
+            mes = str(f"{self.get_time}: following: {user}")
             self.app.logger.appendPlainText(mes)
             self.api.create_friendship(user)
             time.sleep(random.randint(1, 720))
@@ -66,4 +65,7 @@ class twibot:
         self.app.follow_button2.setEnabled(True)
 
 
-
+    def get_time(self):
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        return current_time

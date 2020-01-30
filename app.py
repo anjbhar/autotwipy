@@ -4,12 +4,14 @@ import threading
 import tweepy
 import csv
 import os
+
+from PySide2 import QtGui
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import QLabel, QApplication, QTabWidget, QWidget, QFormLayout, \
     QLineEdit, QPushButton, QPlainTextEdit
 
-from twibot import twibot
+from follow import follow
 
 
 class application(QTabWidget):
@@ -53,6 +55,7 @@ class application(QTabWidget):
         self.tab2UI()
         self.tab3UI()
         self.setWindowTitle("Optumize")
+        self.setWindowIcon(QtGui.QIcon('assets/oo.png'))
 
         #threads
         self.t1 = None
@@ -86,7 +89,7 @@ class application(QTabWidget):
         self.follow_button.setEnabled(False)
         self.link_result.setText("")
         if self.bot is None:
-            self.link_result.setText("Configure access keys in set keys tab")
+            self.link_result.setText("<font color='red'>Configure access keys in set keys tab</font>")
             return
         if self.t1 is not None:
             self.link_result.setText("Please wait on other script or cancel")
@@ -104,7 +107,7 @@ class application(QTabWidget):
         self.follow_button2.setEnabled(False)
         self.handle_result.setText("")
         if self.bot is None:
-            self.handle_result.setText("Configure access keys in set keys tab")
+            self.handle_result.setText("<font color='red'>Configure access keys in set keys tab</font>")
             return
         if self.t1 is not None:
             self.handle_result.setText("Please wait on other script or cancel")
@@ -126,7 +129,6 @@ class application(QTabWidget):
 
     def tab2UI(self):
         layout = QFormLayout()
-        layout.addRow("Link to tweet", QLabel())
         layout.addRow(QLabel())
         self.setTabText(1, "Interact")
         self.tab2.setLayout(layout)
@@ -166,7 +168,7 @@ class application(QTabWidget):
         three = self.edit_3.text()
         four = self.edit_4.text()
         try:
-            self.bot = twibot(one, two, three, four, self)
+            self.bot = follow(one, two, three, four, self)
             me = self.bot.add_keys(one,two,three,four)
             self.handle_info.setText("Handle: @" + me.screen_name)
             self.follower_info.setText("Followers: " + str(me.followers_count))
