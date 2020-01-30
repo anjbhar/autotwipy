@@ -40,10 +40,17 @@ class follow:
                 self.app.logger.appendPlainText("Sleeping...")
                 time.sleep(26500)
                 count = 0
-            mes = str(f"{self.get_time}: following: {user}")
-            self.app.logger.appendPlainText(mes)
-            self.api.create_friendship(user)
-            time.sleep(random.randint(1,720))
+            status = self.api.show_friendship(self.api.me, user)
+            if status[0] is False and status[1] is True:
+                self.app.logger.appendPlainText(f"{user.screen_name} is already following you")
+            if status[0] is True:
+                self.app.logger.appendPlainText(f"already following {user.screen_name}")
+            elif status[0] is False:
+                mes = str(f"{self.get_time}: following: {user.screen_name}")
+                self.app.logger.appendPlainText(mes)
+                self.api.create_friendship(user)
+                time.sleep(random.randint(1, 720))
+
         self.app.t1 == None
         self.app.follow_button.setEnabled(True)
 
@@ -57,10 +64,17 @@ class follow:
                 self.app.logger.appendPlainText("Sleeping...")
                 time.sleep(26500)
                 count = 0
-            mes = str(f"{self.get_time}: following: {user}")
-            self.app.logger.appendPlainText(mes)
-            self.api.create_friendship(user)
-            time.sleep(random.randint(1, 720))
+            status = self.api.show_friendship(self.api.me, user)
+            if status[0] is False and status[1] is True:
+                self.app.logger.appendPlainText(f"{user.screen_name} is already following you")
+            if status[0] is True:
+                self.app.logger.appendPlainText(f"already following {user.screen_name}")
+            elif status[0] is False:
+                mes = str(f"{self.get_time}: following: {user.screen_name}")
+                self.app.logger.appendPlainText(mes)
+                self.api.create_friendship(user)
+                time.sleep(random.randint(1, 720))
+
         self.app.t1 == None
         self.app.follow_button2.setEnabled(True)
 
