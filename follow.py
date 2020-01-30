@@ -74,7 +74,6 @@ class follow:
                 time.sleep(random.randint(1, 720))
             else:
                 self.app.logger.appendPlainText(f"friendship already exists with {user.screen_name}")
-
         self.app.t1 == None
         self.app.follow_button2.setEnabled(True)
 
