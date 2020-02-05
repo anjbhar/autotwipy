@@ -98,6 +98,7 @@ class application(QTabWidget):
         id_tweet = link.split("/")[-1]
         try:
             tweet = self.bot.api.get_status(id_tweet)
+            self.logger.appendPlainText(f"following retweeters from link: {link}...")
             self.t1 = threading.Thread(target=self.bot.follow_users_from_retweeters, args =(link, 30))
             self.t1.start()
         except tweepy.error.TweepError:
@@ -121,6 +122,7 @@ class application(QTabWidget):
             id_user = handle
         try:
             man = self.bot.api.get_user(id_user)
+            self.logger.appendPlainText(f"following followers of {man.screen_name}...")
             self.t1 = threading.Thread(target=self.bot.follow_users_from_handle, args=(man.screen_name, 30))
             self.t1.start()
         except tweepy.error.TweepError:

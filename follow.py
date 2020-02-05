@@ -35,11 +35,9 @@ class follow:
         id_tweet = link.split("/")[-1]
         retweeters = self.api.retweeters(id_tweet)
         count = 0
-        self.app.logger.appendPlainText(f"Following retweeters of {link}")
         for u in retweeters:
             user = self.api.get_user(u)
             if count == limit:
-                self.app.logger.appendPlainText("Sleeping...")
                 time.sleep(26500)
                 count = 0
             b = self.check_follow(self.me.id, u)
@@ -50,7 +48,7 @@ class follow:
                 self.api.create_friendship(u)
                 time.sleep(random.randint(1, 720))
             else:
-                self.app.logger.appendPlainText(f"friendship already exists with {user.screen_name}")
+                time.sleep(5)
 
         self.app.t1 == None
         self.app.follow_button.setEnabled(True)
@@ -59,7 +57,6 @@ class follow:
         lst = self.api.followers(handle)
 
         count = 0
-        self.app.logger.appendPlainText(f"following followers of {handle}")
         for user in lst:
             if count == limit:
                 self.app.logger.appendPlainText("Sleeping...")
@@ -73,7 +70,7 @@ class follow:
                 self.api.create_friendship(user)
                 time.sleep(random.randint(1, 720))
             else:
-                self.app.logger.appendPlainText(f"friendship already exists with {user.screen_name}")
+                time.sleep(5)
         self.app.t1 == None
         self.app.follow_button2.setEnabled(True)
 
