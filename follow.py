@@ -1,83 +1,83 @@
-import tweepy
+from PySide2.QtCore import QThread, SIGNAL
 import random
 import time
-from datetime import datetime
+import tweepy
+import util
 
 
-class follow:
+class FollowThread(QThread):
 
-    def __init__(self, one, two, three, four, app):
-        self.consumer_key = one
-        self.consumer_secret = two
-        self.access_token = three
-        self.access_token_secret = four
-        self.auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
-        self.auth.set_access_token(self.access_token, self.access_token_secret)
-        self.api = tweepy.API(self.auth)
-        self.app = app
-        try:
-            self.me = self.api.me()
-        except:
-            raise ("Error")
+    def __init__(self, bot, item, limit, mode):
+        QThread.__init__(self)
+        self.api = bot.api
+        self.item = item
+        self.limit = limit
+        self.mode = mode
+        self.me = self.api.me()
 
-    def add_keys(self, one, two, three, four):
-        self.consumer_key = one
-        self.consumer_secret = two
-        self.access_token = three
-        self.access_token_secret = four
-        self.auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
-        self.auth.set_access_token(self.access_token, self.access_token_secret)
-        self.api = tweepy.API(self.auth)
-        me = self.api.me()
-        return me
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        if self.mode == 1:
+            self.follow_users_from_retweeters(self.item, self.limit)
+        else:
+            self.follow_users_from_handle(self.item, self.limit)
+        self.emit(SIGNAL('finished()'))
 
     def follow_users_from_retweeters(self, link, limit):
         id_tweet = link.split("/")[-1]
-        retweeters = self.api.retweeters(id_tweet)
         count = 0
+        retweeters = self.api.retweeters(id_tweet)
+        strcount = str(len(retweeters))
+        msg = strcount
+        self.emit(SIGNAL('setup_prog(QString)'), msg)
         for u in retweeters:
             user = self.api.get_user(u)
             if count == limit:
                 time.sleep(26500)
                 count = 0
+            t = util.get_time()
             b = self.check_follow(self.me.id, u)
             if b is True:
-                t = self.get_time()
-                mes = str(f"{t}: following {user.screen_name}")
-                self.app.logger.appendPlainText(mes)
+                message = f"{t} following user: {user.screen_name}"
                 self.api.create_friendship(u)
-                time.sleep(random.randint(1, 720))
+                self.emit(SIGNAL('post_follow(QString)'), message)
+                self.sleep(random.randint(1, 720))
             else:
-                time.sleep(5)
-
-        self.app.t1 == None
-        self.app.follow_button.setEnabled(True)
+                message = f"{t} friendship already exists: {user.screen_name}"
+                self.emit(SIGNAL('post_follow(QString)'), message)
+                self.sleep(5)
+        return
 
     def follow_users_from_handle(self, handle, limit):
         lst = self.api.followers(handle)
 
         count = 0
+        msg = str(len(lst))
+        self.emit(SIGNAL('setup_prog(QString)'), msg)
         for user in lst:
             if count == limit:
-                self.app.logger.appendPlainText("Sleeping...")
-                time.sleep(26500)
+                self.sleep(26500)
                 count = 0
             b = self.check_follow(self.me.id, user.id)
             if b is True:
-                t = self.get_time()
-                mes = str(f"{t}: following: {user.screen_name}")
-                self.app.logger.appendPlainText(mes)
+                t = util.get_time()
                 self.api.create_friendship(user)
-                time.sleep(random.randint(1, 720))
+                self.emit(SIGNAL('post_follow(QString)'), message)
+                self.sleep(random.randint(1, 720))
             else:
-                time.sleep(5)
-        self.app.t1 == None
-        self.app.follow_button2.setEnabled(True)
+                message = f"{t} friendship already exists: {user.screen_name}"
+                self.emit(SIGNAL('post_follow(QString)'), message)
+                self.sleep(5)
+        return
 
-    def get_time(self):
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-        return current_time
+    def limit_handled(self, cursor):
+        while True:
+            try:
+                yield cursor.next()
+            except tweepy.RateLimitError:
+                self.sleep(15 * 60)
 
     def check_follow(self, id_source, id_target):
         status = self.api.show_friendship(source_id=id_source, target_id=id_target)
