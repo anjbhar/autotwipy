@@ -120,6 +120,7 @@ class application(QTabWidget):
         if self.follow_thread is None:
             pass
         elif self.follow_thread.isRunning():
+            self.prog_bar.setValue(0)
             self.logger.appendPlainText("Cancelled script")
             self.follow_thread.terminate()
             self.follow_thread = None
@@ -153,6 +154,7 @@ class application(QTabWidget):
 
 
     def setup_prog(self, msg):
+        print(msg)
         self.prog_bar.setMaximum(int(msg))
 
 
@@ -179,6 +181,7 @@ class application(QTabWidget):
             man = self.bot.api.get_user(id_user)
             self.logger.appendPlainText(f"following followers of {man.screen_name}...")
             self.follow_thread = FollowThread(self.bot, id_user, limit, 2)
+            self.follow_thread.start()
             self.connect(self.follow_thread, SIGNAL("finished()"), self.done)
             self.connect(self.follow_thread, SIGNAL("setup_prog(QString)"), self.setup_prog)
             self.connect(self.follow_thread, SIGNAL("post_follow(QString)"), self.post_follow)
@@ -187,8 +190,11 @@ class application(QTabWidget):
             self.link_result.setText("<font color='red'>Could not find user</font>")
 
     def post_follow(self, message):
-        self.logger.appendPlainText(message)
-        self.prog_bar.setValue(self.prog_bar.value()+1)
+        if message == "bad":
+            self.logger.appendPlainText("Rate limit exceeded... sleeping for cooldown")
+        else:
+            self.logger.appendPlainText(message)
+            self.prog_bar.setValue(self.prog_bar.value()+1)
 
     def done(self):
         self.follow_thread = None

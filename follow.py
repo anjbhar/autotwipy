@@ -21,14 +21,20 @@ class FollowThread(QThread):
     def run(self):
         if self.mode == 1:
             self.follow_users_from_retweeters(self.item, self.limit)
-        else:
+        elif self.mode == 2:
             self.follow_users_from_handle(self.item, self.limit)
         self.emit(SIGNAL('finished()'))
 
     def follow_users_from_retweeters(self, link, limit):
         id_tweet = link.split("/")[-1]
         count = 0
-        retweeters = self.api.retweeters(id_tweet)
+        try:
+            retweeters = self.api.retweeters(id_tweet)
+        except tweepy.RateLimitError:
+            print("sleeping on rate limit")
+            self.emit(SIGNAL('post_follow(QString)'), "bad")
+            self.sleep(15 * 60)
+            self.follow_users_from_retweeters(link, limit)
         strcount = str(len(retweeters))
         msg = strcount
         self.emit(SIGNAL('setup_prog(QString)'), msg)
@@ -51,8 +57,12 @@ class FollowThread(QThread):
         return
 
     def follow_users_from_handle(self, handle, limit):
-        lst = self.api.followers(handle)
-
+        try:
+            lst = self.api.followers(handle)
+        except tweepy.RateLimitError:
+            print("sleeping on rate limit")
+            self.emit(SIGNAL('post_follow(QString)'), "bad")
+            self.sleep(15 * 60)
         count = 0
         msg = str(len(lst))
         self.emit(SIGNAL('setup_prog(QString)'), msg)
@@ -61,8 +71,8 @@ class FollowThread(QThread):
                 self.sleep(26500)
                 count = 0
             b = self.check_follow(self.me.id, user.id)
+            t = util.get_time()
             if b is True:
-                t = util.get_time()
                 self.api.create_friendship(user)
                 self.emit(SIGNAL('post_follow(QString)'), message)
                 self.sleep(random.randint(1, 720))
@@ -72,12 +82,24 @@ class FollowThread(QThread):
                 self.sleep(5)
         return
 
+    def getAllFollowers(self, screen_name):
+        followers = self.limit_handled(tweepy.Cursor(self.api.followers, screen_name=screen_name).items())
+        temp = []
+        for user in followers:
+            temp.append(user)
+
+        return temp
+
     def limit_handled(self, cursor):
         while True:
             try:
                 yield cursor.next()
             except tweepy.RateLimitError:
+                print("sleeping on rate limit")
+                self.emit(SIGNAL('post_follow(QString)'), "bad")
                 self.sleep(15 * 60)
+            except StopIteration:
+                print("wild")
 
     def check_follow(self, id_source, id_target):
         status = self.api.show_friendship(source_id=id_source, target_id=id_target)
