@@ -58,13 +58,15 @@ class FollowThread(QThread):
 
     def follow_users_from_handle(self, handle, limit):
         try:
-            lst = self.api.followers(handle)
+            lst = self.getAllFollowers(handle)
+            return
         except tweepy.RateLimitError:
             print("sleeping on rate limit")
             self.emit(SIGNAL('post_follow(QString)'), "bad")
             self.sleep(15 * 60)
         count = 0
         msg = str(len(lst))
+        print(len(lst))
         self.emit(SIGNAL('setup_prog(QString)'), msg)
         for user in lst:
             if count == limit:
@@ -86,6 +88,7 @@ class FollowThread(QThread):
         followers = self.limit_handled(tweepy.Cursor(self.api.followers, screen_name=screen_name).items())
         temp = []
         for user in followers:
+            print(user.screen_name)
             temp.append(user)
 
         return temp
@@ -94,12 +97,14 @@ class FollowThread(QThread):
         while True:
             try:
                 yield cursor.next()
+                self.sleep(60)
             except tweepy.RateLimitError:
                 print("sleeping on rate limit")
                 self.emit(SIGNAL('post_follow(QString)'), "bad")
                 self.sleep(15 * 60)
             except StopIteration:
-                print("wild")
+                print("stopiteration")
+                self.sleep(15 * 60)
 
     def check_follow(self, id_source, id_target):
         status = self.api.show_friendship(source_id=id_source, target_id=id_target)

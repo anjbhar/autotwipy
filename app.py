@@ -2,7 +2,6 @@ import sys
 
 import tweepy
 import csv
-import os
 import apiconnector
 from PySide2 import QtGui
 from PySide2.QtCore import *
@@ -11,6 +10,7 @@ from PySide2.QtWidgets import QLabel, QApplication, QTabWidget, QWidget, QFormLa
     QLineEdit, QPushButton, QPlainTextEdit, QComboBox, QSpinBox, QHBoxLayout, QProgressBar, QMessageBox
 
 from follow import FollowThread
+from unfollow import UnfollowThread
 
 
 class application(QTabWidget):
@@ -23,11 +23,13 @@ class application(QTabWidget):
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tab3 = QWidget()
+        self.tab4 = QWidget()
         self.resize(640, 400)
 
         self.addTab(self.tab1, "Tab 1")
         self.addTab(self.tab2, "Tab 2")
         self.addTab(self.tab3, "Tab 3")
+        self.addTab(self.tab4, "Tab 4")
         # tab set keys
         self.h_box_key = QHBoxLayout()
         self.change_key_b = QPushButton("Edit keys")
@@ -58,19 +60,27 @@ class application(QTabWidget):
         #tab unfollow
         self.unfollow_button = QPushButton("Unfollow All")
         self.unf_logger = QPlainTextEdit()
+        self.unfollow_res = QLabel()
+        self.prog_bar_unf = QProgressBar()
         self.unfollow_cancel = QPushButton("Cancel")
         self.unf_confirm = QMessageBox()
+
+        #tab help
+        self.help_box = QPlainTextEdit()
 
 
         #tabs
         self.tab1UI()
         self.tab2UI()
         self.tab3UI()
+        self.tab4UI()
+
         self.setWindowTitle("Optumize")
         self.setWindowIcon(QtGui.QIcon('assets/oo.png'))
 
         #threads
         self.follow_thread = None
+        self.unfollow_thread = None
 
     def tab1UI(self):
         layout = QFormLayout()
@@ -154,7 +164,6 @@ class application(QTabWidget):
 
 
     def setup_prog(self, msg):
-        print(msg)
         self.prog_bar.setMaximum(int(msg))
 
 
@@ -204,17 +213,41 @@ class application(QTabWidget):
         layout = QFormLayout()
         layout.addRow(self.unfollow_button)
         layout.addRow(self.unfollow_cancel)
+        layout.addRow(self.unfollow_res)
+        self.unfollow_res.setAlignment(Qt.AlignCenter)
         self.unfollow_button.clicked.connect(self.unfollow_fol)
         self.unfollow_cancel.clicked.connect(self.unfollow_can)
         layout.addWidget(self.unf_logger)
+        self.unf_logger.setReadOnly(True)
+        layout.addRow(self.prog_bar_unf)
+        self.prog_bar_unf.setAlignment(Qt.AlignCenter)
         self.setTabText(1, "Unfollow")
         self.tab2.setLayout(layout)
 
     def unfollow_fol(self):
-        pass
+        self.unfollow_button.setEnabled(False)
+        self.unfollow_thread = UnfollowThread(self.bot)
+        self.unfollow_thread.start()
+        self.connect(self.unfollow_thread, SIGNAL("post_unfol(QString)"), self.post_unfol)
+        self.connect(self.unfollow_thread, SIGNAL("finished()"), self.done_unf)
+
+    def done_unf(self):
+        self.unfollow_thread = None
+        self.unfollow_button.setEnabled(True)
+
+    def post_unfol(self, msg):
+        if msg == "bad":
+            self.unf_logger.appendPlainText("rate limit exceeded, resting for 15 minutes")
+        else:
+            self.unf_logger.appendPlainText(f"Unfollowing {msg}")
 
     def unfollow_can(self):
-        pass
+        if self.unfollow_thread is None:
+            pass
+        elif self.unfollow_thread.isRunning():
+            self.unf_logger.appendPlainText("Cancelled script")
+            self.unfollow_thread.terminate()
+            self.unfollow_thread = None
 
     def tab3UI(self):
         layout = QFormLayout()
@@ -278,6 +311,13 @@ class application(QTabWidget):
                     return row
         except:
             return None
+
+    def tab4UI(self):
+        layout = QFormLayout()
+        layout.addWidget(self.help_box)
+        self.help_box.setReadOnly(True)
+        self.setTabText(3, "Help")
+        self.tab4.setLayout(layout)
 
 
 def main():
