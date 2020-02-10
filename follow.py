@@ -3,6 +3,7 @@ import random
 import time
 import tweepy
 import util
+import csv
 
 
 class FollowThread(QThread):
@@ -47,6 +48,7 @@ class FollowThread(QThread):
             b = self.check_follow(self.me.id, u)
             if b is True:
                 message = f"{t} following user: {user.screen_name}"
+                self.write_csv(user)
                 self.api.create_friendship(u)
                 self.emit(SIGNAL('post_follow(QString)'), message)
                 self.sleep(random.randint(1, 720))
@@ -59,7 +61,6 @@ class FollowThread(QThread):
     def follow_users_from_handle(self, handle, limit):
         try:
             lst = self.getAllFollowers(handle)
-            return
         except tweepy.RateLimitError:
             print("sleeping on rate limit")
             self.emit(SIGNAL('post_follow(QString)'), "bad")
@@ -75,6 +76,7 @@ class FollowThread(QThread):
             b = self.check_follow(self.me.id, user.id)
             t = util.get_time()
             if b is True:
+                self.write_csv(user)
                 self.api.create_friendship(user)
                 self.emit(SIGNAL('post_follow(QString)'), message)
                 self.sleep(random.randint(1, 720))
@@ -97,20 +99,27 @@ class FollowThread(QThread):
         while True:
             try:
                 yield cursor.next()
-                self.sleep(60)
             except tweepy.RateLimitError:
                 print("sleeping on rate limit")
                 self.emit(SIGNAL('post_follow(QString)'), "bad")
                 self.sleep(15 * 60)
             except StopIteration:
                 print("stopiteration")
-                self.sleep(15 * 60)
+                return
+
+    def write_csv(self, user):
+        with open('user.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([user.id])
+            file.close()
+
 
     def check_follow(self, id_source, id_target):
         status = self.api.show_friendship(source_id=id_source, target_id=id_target)
-        if status[0] is False and status[1] is True:
+        print(status[0].following, status[0].followed_by)
+        if status[0].following is False and status[0].followed_by is True:
             return False
-        if status[0] is True:
+        elif status[0].following is True:
             return False
-        elif status[0] is False:
+        elif status[0].following is False:
             return True

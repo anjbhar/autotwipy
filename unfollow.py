@@ -3,6 +3,7 @@ import random
 import time
 import tweepy
 import util
+import csv
 
 
 
@@ -21,26 +22,27 @@ class UnfollowThread(QThread):
 
 
     def unfollow_all(self):
-        count = 0
         try:
-            for follower in self.limit_handled(tweepy.Cursor(self.api.followers).items()):
-                print(follower.screen_name)
+            followers = self.read_file()
+            for u in followers:
+                user = self.api.get_user(u)
+                print(user.screen_name)
                 # self.api.destroy_friendship(follower.id)
                 # self.sleep(random.randint(1, 720))
-                count+=1
-                self.emit(SIGNAL('post_unfol(QString)'), follower.screen_name)
+                self.emit(SIGNAL('post_unfol(QString)'), user.screen_name)
         except:
             print("bad")
-        print(count)
+            self.sleep(60)
+            self.unfollow_all()
 
 
-    def limit_handled(self, cursor):
-        while True:
-            try:
-                yield cursor.next()
-                self.sleep(60)
-            except tweepy.RateLimitError:
-                self.emit(SIGNAL('post_unfol(QString)'), "bad")
-                self.sleep(15 * 60)
-            except StopIteration:
-                self.sleep(15 * 60)
+    def read_file(self):
+        users = []
+        try:
+            with open('user.csv') as csvfile:
+                readCSV = csv.reader(csvfile, delimiter=',')
+                for row in readCSV:
+                    users.append(row[0])
+            return users
+        except:
+            return None

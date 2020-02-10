@@ -1,3 +1,5 @@
+import time
+
 import tweepy
 
 
@@ -26,3 +28,4 @@ class ApiConnector:
         self.api = tweepy.API(self.auth)
         me = self.api.me()
         return me
+

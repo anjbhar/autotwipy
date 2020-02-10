@@ -1,8 +1,8 @@
 import sys
 
 import tweepy
-import csv
 import apiconnector
+import sqlite3
 from PySide2 import QtGui
 from PySide2.QtCore import *
 from PySide2.QtGui import *
@@ -19,7 +19,8 @@ class application(QTabWidget):
     def __init__(self, parent=None):
         super(application, self).__init__(parent)
         self.bot = None
-        #tabs
+        self.db = sqlite3.connect('database')
+        # tabs
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tab3 = QWidget()
@@ -57,19 +58,18 @@ class application(QTabWidget):
         self.cancel_button = QPushButton("Cancel")
         self.logger = QPlainTextEdit()
 
-        #tab unfollow
-        self.unfollow_button = QPushButton("Unfollow All")
+        # tab unfollow
+        self.unfollow_button = QPushButton("Unfollow Auto followers")
         self.unf_logger = QPlainTextEdit()
         self.unfollow_res = QLabel()
         self.prog_bar_unf = QProgressBar()
         self.unfollow_cancel = QPushButton("Cancel")
         self.unf_confirm = QMessageBox()
 
-        #tab help
+        # tab help
         self.help_box = QPlainTextEdit()
 
-
-        #tabs
+        # tabs
         self.tab1UI()
         self.tab2UI()
         self.tab3UI()
@@ -78,9 +78,15 @@ class application(QTabWidget):
         self.setWindowTitle("Optumize")
         self.setWindowIcon(QtGui.QIcon('assets/oo.png'))
 
-        #threads
+        # threads
         self.follow_thread = None
         self.unfollow_thread = None
+
+        # db
+        cursor = self.db.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS keys(one TEXT, two TEXT, three TEXT, four TEXT)''')
+        self.db.commit()
 
     def tab1UI(self):
         layout = QFormLayout()
@@ -162,10 +168,8 @@ class application(QTabWidget):
             self.follow_button.setEnabled(True)
             self.link_result.setText("<font color='red'>Could not find tweet</font>")
 
-
     def setup_prog(self, msg):
         self.prog_bar.setMaximum(int(msg))
-
 
     def follow_fol(self):
         self.prog_bar.setValue(0)
@@ -189,6 +193,7 @@ class application(QTabWidget):
         try:
             man = self.bot.api.get_user(id_user)
             self.logger.appendPlainText(f"following followers of {man.screen_name}...")
+            self.logger.appendPlainText(f"Collecting")
             self.follow_thread = FollowThread(self.bot, id_user, limit, 2)
             self.follow_thread.start()
             self.connect(self.follow_thread, SIGNAL("finished()"), self.done)
@@ -203,7 +208,7 @@ class application(QTabWidget):
             self.logger.appendPlainText("Rate limit exceeded... sleeping for cooldown")
         else:
             self.logger.appendPlainText(message)
-            self.prog_bar.setValue(self.prog_bar.value()+1)
+            self.prog_bar.setValue(self.prog_bar.value() + 1)
 
     def done(self):
         self.follow_thread = None
@@ -233,6 +238,7 @@ class application(QTabWidget):
 
     def done_unf(self):
         self.unfollow_thread = None
+        self.unf_logger.appendPlainText("Done")
         self.unfollow_button.setEnabled(True)
 
     def post_unfol(self, msg):
@@ -291,24 +297,32 @@ class application(QTabWidget):
         four = self.edit_4.text()
         try:
             self.bot = apiconnector.ApiConnector(one, two, three, four)
-            me = self.bot.add_keys(one,two,three,four)
+            me = self.bot.add_keys(one, two, three, four)
             self.handle_info.setText("Handle: @" + me.screen_name)
             self.follower_info.setText("Followers: " + str(me.followers_count))
             self.ready_lab.setText("<font color='green'>Ready!</font>")
-            with open('keys.csv', 'w', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow([one, two, three, four])
+            cursor = self.db.cursor()
+            cursor.execute('DELETE FROM keys;',);
+            cursor.execute('''INSERT INTO keys(one, two, three, four)
+                  VALUES(?,?,?,?)''', (one, two, three, four))
+            self.db.commit()
         except:
             print("Could not authenticate you")
             self.result.setText("<font color='red'>Could not authenticate you</font>")
 
-
     def read_file(self):
+        result = []
         try:
-            with open('keys.csv') as csvfile:
-                readCSV = csv.reader(csvfile, delimiter=',')
-                for row in readCSV:
-                    return row
+            cursor = self.db.cursor()
+            cursor.execute('''SELECT one, two, three, four FROM keys''')
+            all_rows = cursor.fetchall()
+            for row in all_rows:
+                result.append(row[0])
+                result.append(row[1])
+                result.append(row[2])
+                result.append(row[3])
+            return result
+
         except:
             return None
 
