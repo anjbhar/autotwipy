@@ -32,9 +32,9 @@ class UnfollowThread(QThread):
             print(user.screen_name)
             id = user.id
             self.api.destroy_friendship(id)
+            self.emit(SIGNAL('post_unfol(QString)'), user.screen_name)
             cur.execute("DELETE FROM followed_users WHERE id = id;")
             self.db.commit()
             self.sleep(random.randint(1, 720))
-            self.emit(SIGNAL('post_unfol(QString)'), user.screen_name)
         self.db.close()
 
