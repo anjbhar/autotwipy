@@ -2,10 +2,6 @@ import sqlite3
 
 from PySide2.QtCore import QThread, SIGNAL
 import random
-import time
-import tweepy
-import util
-import csv
 
 
 
@@ -34,7 +30,11 @@ class UnfollowThread(QThread):
         for u in followers:
             user = self.api.get_user(u)
             print(user.screen_name)
-            # self.api.destroy_friendship(follower.id)
-            # self.sleep(random.randint(1, 720))
+            id = user.id
+            self.api.destroy_friendship(id)
+            cur.execute("DELETE FROM followed_users WHERE id = id;")
+            self.db.commit()
+            self.sleep(random.randint(1, 720))
             self.emit(SIGNAL('post_unfol(QString)'), user.screen_name)
+        self.db.close()
 
