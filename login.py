@@ -15,17 +15,20 @@ class Login(QtWidgets.QDialog):
         self.textPass = QtWidgets.QLineEdit(self)
         self.textPass.setEchoMode(QLineEdit.Password)
         l = self.check_acc()
-        if l is not None:
+        try:
             self.textName.setText(l[0])
             self.textPass.setText(l[1])
-        self.buttonLogin = QtWidgets.QPushButton('Login', self)
-        self.buttonLogin.clicked.connect(self.handleLogin)
-        self.setWindowTitle("Optumize")
-        self.setWindowIcon(QtGui.QIcon('assets/oo.png'))
-        layout = QtWidgets.QFormLayout(self)
-        layout.addRow("User", self.textName)
-        layout.addRow("Password", self.textPass)
-        layout.addWidget(self.buttonLogin)
+        except:
+            pass
+        finally:
+            self.buttonLogin = QtWidgets.QPushButton('Login', self)
+            self.buttonLogin.clicked.connect(self.handleLogin)
+            self.setWindowTitle("Optumize")
+            self.setWindowIcon(QtGui.QIcon('assets/oo.png'))
+            layout = QtWidgets.QFormLayout(self)
+            layout.addRow("User", self.textName)
+            layout.addRow("Password", self.textPass)
+            layout.addWidget(self.buttonLogin)
 
 
     def handleLogin(self):
@@ -37,6 +40,7 @@ class Login(QtWidgets.QDialog):
             cursor.execute('DELETE FROM account;',);
             cursor.execute('''INSERT INTO account(one, two) VALUES(?,?)''', (user, passw))
             self.db.commit()
+            self.db.close()
             self.accept()
 
         else:
@@ -45,18 +49,17 @@ class Login(QtWidgets.QDialog):
 
 
     def check_acc(self):
-            account = []
-            cursor = self.db.cursor()
-        #try:
+        account = []
+        cursor = self.db.cursor()
+        try:
             cursor.execute('''SELECT one, two FROM account''')
             all_rows = cursor.fetchall()
             for row in all_rows:
                 account.append(row[0])
                 account.append(row[1])
-            print(account)
             return account
-        # except:
-        #     return None
+        except:
+            return None
 
 class Window(QtWidgets.QMainWindow):
     def __init__(self, parent=None):

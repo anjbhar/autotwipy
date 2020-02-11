@@ -4,6 +4,7 @@ import time
 import tweepy
 import util
 import csv
+import sqlite3
 
 
 class FollowThread(QThread):
@@ -15,6 +16,11 @@ class FollowThread(QThread):
         self.limit = limit
         self.mode = mode
         self.me = self.api.me()
+        self.db = sqlite3.connect('database', check_same_thread=False)
+        cursor = self.db.cursor()
+        cursor.execute('''
+                            CREATE TABLE IF NOT EXISTS followed_users(id TEXT, screen_name TEXT)''')
+        self.db.commit()
 
     def __del__(self):
         self.wait()
@@ -48,8 +54,11 @@ class FollowThread(QThread):
             b = self.check_follow(self.me.id, u)
             if b is True:
                 message = f"{t} following user: {user.screen_name}"
-                self.write_csv(user)
+                cursor = self.db.cursor()
+                cursor.execute('''INSERT INTO followed_users(id, screen_name) VALUES(?,?)''', (user.id, user.screen_name))
+                self.db.commit()
                 self.api.create_friendship(u)
+
                 self.emit(SIGNAL('post_follow(QString)'), message)
                 self.sleep(random.randint(1, 720))
             else:
@@ -76,7 +85,10 @@ class FollowThread(QThread):
             b = self.check_follow(self.me.id, user.id)
             t = util.get_time()
             if b is True:
-                self.write_csv(user)
+                cursor = self.db.cursor()
+                cursor.execute('''INSERT INTO followed_users(id, screen_name) VALUES(?,?)''',
+                               (user.id, user.screen_name))
+                self.db.commit()
                 self.api.create_friendship(user)
                 self.emit(SIGNAL('post_follow(QString)'), message)
                 self.sleep(random.randint(1, 720))
@@ -106,13 +118,6 @@ class FollowThread(QThread):
             except StopIteration:
                 print("stopiteration")
                 return
-
-    def write_csv(self, user):
-        with open('user.csv', 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([user.id])
-            file.close()
-
 
     def check_follow(self, id_source, id_target):
         status = self.api.show_friendship(source_id=id_source, target_id=id_target)
