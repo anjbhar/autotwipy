@@ -151,7 +151,7 @@ class application(QTabWidget):
             self.link_result.setText("<font color='red'>Configure access keys in set keys tab</font>")
             return
         if self.follow_thread is not None:
-            self.link_result.setText("<font color='red'>Please wait on other script or cancel</font>")
+            #self.link_result.setText("<font color='red'>Please wait on other script or cancel</font>")
             return
         link = self.link_box.text()
         id_tweet = link.split("/")[-1]
@@ -181,7 +181,8 @@ class application(QTabWidget):
             self.link_result.setText("<font color='red'>Configure access keys in set keys tab</font>")
             return
         if self.follow_thread is not None:
-            self.link_result.setText("<font color='red'>Please wait on other script or cancel</font>")
+            #self.link_result.setText("<font color='red'>Please wait on other script or cancel</font>")
+            return
         handle = self.link_box.text()
         if handle == '':
             self.link_result.setText("<font color='red'>Enter a handle above</font>")
