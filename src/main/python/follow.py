@@ -71,7 +71,7 @@ class FollowThread(QThread):
 
     def follow_users_from_handle(self, handle, limit, max):
         try:
-            lst = self.getAllFollowers(handle)
+            lst = self.getAllFollowers(handle,max)
         except tweepy.RateLimitError:
             print("sleeping on rate limit")
             self.emit(SIGNAL('post_follow(QString)'), "bad")
