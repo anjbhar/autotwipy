@@ -6,6 +6,8 @@ import util
 import csv
 import sqlite3
 
+from tweepy import TweepError
+
 
 class FollowThread(QThread):
 
@@ -71,7 +73,7 @@ class FollowThread(QThread):
 
     def follow_users_from_handle(self, handle, limit, max):
         try:
-            lst = self.getAllFollowers(handle)
+            lst = self.getAllFollowers(handle,max)
         except tweepy.RateLimitError:
             print("sleeping on rate limit")
             self.emit(SIGNAL('post_follow(QString)'), "bad")
@@ -91,9 +93,13 @@ class FollowThread(QThread):
                 cursor.execute('''INSERT INTO followed_users(id, screen_name) VALUES(?,?)''',
                                (user.id, user.screen_name))
                 self.db.commit()
-                self.api.create_friendship(user)
-                self.emit(SIGNAL('post_follow(QString)'), message)
-                self.sleep(random.randint(1, 720))
+                try:
+                    self.api.create_friendship(user.id)
+                    message= f"{t} following user: {user.screen_name}"
+                    self.emit(SIGNAL('post_follow(QString)'), message)
+                    self.sleep(random.randint(1, 720))
+                except TweepError:
+                    pass
             else:
                 message = f"{t} friendship already exists: {user.screen_name}"
                 self.emit(SIGNAL('post_follow(QString)'), message)
