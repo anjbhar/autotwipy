@@ -57,6 +57,9 @@ class application(QTabWidget):
         self.follow_button = QPushButton("Follow Retweeters")
         self.cancel_button = QPushButton("Cancel")
         self.logger = QPlainTextEdit()
+        self.h_box2 = QHBoxLayout()
+        self.max_box = QSpinBox()
+        self.max_label = QLabel("Max follows before stop")
 
         # tab unfollow
         self.unfollow_button = QPushButton("Unfollow Auto followers")
@@ -110,9 +113,20 @@ class application(QTabWidget):
         layout.addRow(self.follow_button)
         self.follow_button.clicked.connect(self.follow_ret)
 
+
         layout.addRow(self.cancel_button)
         self.cancel_button.clicked.connect(self.cancel_onclick)
+        layout.addRow(self.h_box2)
+        self.h_box2.addWidget(self.max_label)
+        self.h_box2.addWidget(self.max_box)
+        self.max_box.setFixedWidth(100)
+        self.max_label.setAlignment(Qt.AlignRight)
+        self.max_box.setMaximum(1000000)
+        self.max_box.setValue(100)
+        self.max_label.hide()
+        self.max_box.hide()
         layout.addRow(self.logger)
+
 
         self.logger.setReadOnly(True)
         layout.addRow(self.prog_bar)
@@ -125,11 +139,16 @@ class application(QTabWidget):
             self.box_label.setText("Link to tweet")
             self.follow_button.setText("Follow Retweeters")
             self.link_result.setText("")
+            self.max_label.hide()
+            self.max_box.hide()
             self.follow_button.clicked.connect(self.follow_ret)
         else:
             self.box_label.setText("Handle of user")
             self.follow_button.setText("Follow Followers")
             self.link_result.setText("")
+            self.max_label.show()
+            self.max_box.show()
+            self.max_label.setText("Max follows before stop")
             self.follow_button.clicked.connect(self.follow_fol)
 
     def cancel_onclick(self):
@@ -159,7 +178,7 @@ class application(QTabWidget):
             tweet = self.bot.api.get_status(id_tweet)
 
             self.logger.appendPlainText(f"following retweeters from link: {link}...")
-            self.follow_thread = FollowThread(self.bot, id_tweet, limit, 1)
+            self.follow_thread = FollowThread(self.bot, id_tweet, limit, 1, 0)
             self.follow_thread.start()
             self.connect(self.follow_thread, SIGNAL("finished()"), self.done)
             self.connect(self.follow_thread, SIGNAL("setup_prog(QString)"), self.setup_prog)
@@ -195,7 +214,7 @@ class application(QTabWidget):
             man = self.bot.api.get_user(id_user)
             self.logger.appendPlainText(f"following followers of {man.screen_name}...")
             self.logger.appendPlainText(f"Collecting")
-            self.follow_thread = FollowThread(self.bot, id_user, limit, 2)
+            self.follow_thread = FollowThread(self.bot, id_user, limit, 2, self.max_box.value())
             self.follow_thread.start()
             self.connect(self.follow_thread, SIGNAL("finished()"), self.done)
             self.connect(self.follow_thread, SIGNAL("setup_prog(QString)"), self.setup_prog)

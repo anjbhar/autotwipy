@@ -9,18 +9,20 @@ import sqlite3
 
 class FollowThread(QThread):
 
-    def __init__(self, bot, item, limit, mode):
+    def __init__(self, bot, item, limit, mode, max):
         QThread.__init__(self)
         self.api = bot.api
         self.item = item
         self.limit = limit
         self.mode = mode
+        self.max = max
         self.me = self.api.me()
         self.db = sqlite3.connect('database', check_same_thread=False)
         cursor = self.db.cursor()
         cursor.execute('''
                             CREATE TABLE IF NOT EXISTS followed_users(id TEXT, screen_name TEXT)''')
         self.db.commit()
+        self.to_follow = []
 
     def __del__(self):
         self.wait()
@@ -29,7 +31,7 @@ class FollowThread(QThread):
         if self.mode == 1:
             self.follow_users_from_retweeters(self.item, self.limit)
         elif self.mode == 2:
-            self.follow_users_from_handle(self.item, self.limit)
+            self.follow_users_from_handle(self.item, self.limit, self.max)
         self.emit(SIGNAL('finished()'))
 
     def follow_users_from_retweeters(self, link, limit):
@@ -67,7 +69,7 @@ class FollowThread(QThread):
                 self.sleep(5)
         return
 
-    def follow_users_from_handle(self, handle, limit):
+    def follow_users_from_handle(self, handle, limit, max):
         try:
             lst = self.getAllFollowers(handle)
         except tweepy.RateLimitError:
@@ -98,11 +100,15 @@ class FollowThread(QThread):
                 self.sleep(5)
         return
 
-    def getAllFollowers(self, screen_name):
+    def getAllFollowers(self, screen_name, max):
         followers = self.limit_handled(tweepy.Cursor(self.api.followers, screen_name=screen_name).items())
+        count = 0
         temp = []
         for user in followers:
+            if count == max:
+                return temp
             print(user.screen_name)
+            count+=1
             temp.append(user)
 
         return temp
