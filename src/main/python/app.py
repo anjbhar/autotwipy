@@ -1,5 +1,6 @@
 import sys
 
+import requests
 import tweepy
 import apiconnector
 import sqlite3
@@ -25,12 +26,14 @@ class application(QTabWidget):
         self.tab2 = QWidget()
         self.tab3 = QWidget()
         self.tab4 = QWidget()
+        self.tab5 = QWidget()
         self.resize(640, 400)
 
         self.addTab(self.tab1, "Tab 1")
         self.addTab(self.tab2, "Tab 2")
         self.addTab(self.tab3, "Tab 3")
         self.addTab(self.tab4, "Tab 4")
+        self.addTab(self.tab5, "Tab 5")
         # tab set keys
         self.h_box_key = QHBoxLayout()
         self.change_key_b = QPushButton("Edit keys")
@@ -72,11 +75,18 @@ class application(QTabWidget):
         # tab help
         self.help_box = QPlainTextEdit()
 
+        #tab proxy
+        self.proxy_box = QLineEdit()
+        self.proxy_lab = QLabel()
+        self.proxy_lab.setAlignment(Qt.AlignCenter)
+        self.set_proxy = QPushButton("Set Proxy")
+
         # tabs
         self.tab1UI()
         self.tab2UI()
         self.tab3UI()
         self.tab4UI()
+        self.tab5UI()
 
         self.setWindowTitle("Optumize")
         self.setWindowIcon(QtGui.QIcon('assets/oo.png'))
@@ -308,7 +318,7 @@ class application(QTabWidget):
     def change_keys(self):
         self.set_button.setEnabled(True)
 
-    def set_keys(self):
+    def set_keys(self, proxy=None):
         self.set_button.setEnabled(False)
         self.result.setText("")
         one = self.edit_1.text()
@@ -316,7 +326,7 @@ class application(QTabWidget):
         three = self.edit_3.text()
         four = self.edit_4.text()
         try:
-            self.bot = apiconnector.ApiConnector(one, two, three, four)
+            self.bot = apiconnector.ApiConnector(one, two, three, four, proxy)
             me = self.bot.add_keys(one, two, three, four)
             self.handle_info.setText("Handle: @" + me.screen_name)
             self.follower_info.setText("Followers: " + str(me.followers_count))
@@ -353,6 +363,24 @@ class application(QTabWidget):
         self.setTabText(3, "Help")
         self.tab4.setLayout(layout)
 
+    def tab5UI(self):
+        layout = QFormLayout()
+        layout.addRow("Proxy address", self.proxy_box)
+        self.proxy_box.setPlaceholderText("http://10.10.10.10:8000")
+        layout.addRow(self.proxy_lab)
+        layout.addRow(self.set_proxy)
+        self.set_proxy.clicked.connect(self.setproxy)
+        self.setTabText(4, "Proxy")
+        self.tab5.setLayout(layout)
+
+    def setproxy(self):
+        try:
+            proxy=self.proxy_box.text()
+            prox = {"http": proxy, "https": proxy}
+            print(proxy)
+            requests.get("http://api.twitter.com", proxies=prox)
+        except:
+            self.proxy_lab.setText("<font color='red'>Invalid address</font>")
 
 def main():
     app = QApplication(sys.argv)
