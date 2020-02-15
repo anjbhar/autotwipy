@@ -318,7 +318,7 @@ class application(QTabWidget):
     def change_keys(self):
         self.set_button.setEnabled(True)
 
-    def set_keys(self, proxy=None):
+    def set_keys(self):
         self.set_button.setEnabled(False)
         self.result.setText("")
         one = self.edit_1.text()
@@ -326,7 +326,7 @@ class application(QTabWidget):
         three = self.edit_3.text()
         four = self.edit_4.text()
         try:
-            self.bot = apiconnector.ApiConnector(one, two, three, four, proxy)
+            self.bot = apiconnector.ApiConnector(one, two, three, four)
             me = self.bot.add_keys(one, two, three, four)
             self.handle_info.setText("Handle: @" + me.screen_name)
             self.follower_info.setText("Followers: " + str(me.followers_count))
