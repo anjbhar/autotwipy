@@ -142,6 +142,7 @@ class application(QTabWidget):
         layout.addRow(self.prog_bar)
         self.prog_bar.setAlignment(Qt.AlignCenter)
         self.setTabText(0, "Follow")
+        self.setTabIcon(0, QtGui.QIcon('assets/check_mark.png'))
         self.tab1.setLayout(layout)
 
     def selection_change(self, i):
@@ -257,6 +258,7 @@ class application(QTabWidget):
         layout.addRow(self.prog_bar_unf)
         self.prog_bar_unf.setAlignment(Qt.AlignCenter)
         self.setTabText(1, "Unfollow")
+        self.setTabIcon(1, QtGui.QIcon('assets/cross.png'))
         self.tab2.setLayout(layout)
 
     def unfollow_fol(self):
@@ -313,6 +315,7 @@ class application(QTabWidget):
         layout.addRow(self.ready_lab)
         self.ready_lab.setAlignment(Qt.AlignCenter)
         self.setTabText(2, "Settings")
+        self.setTabIcon(2, QtGui.QIcon('assets/settings.png'))
         self.tab3.setLayout(layout)
 
     def change_keys(self):
@@ -361,6 +364,7 @@ class application(QTabWidget):
         layout.addWidget(self.help_box)
         self.help_box.setReadOnly(True)
         self.setTabText(3, "Help")
+        self.setTabIcon(3, QtGui.QIcon('assets/help.png'))
         self.tab4.setLayout(layout)
 
     def tab5UI(self):
@@ -371,6 +375,7 @@ class application(QTabWidget):
         layout.addRow(self.set_proxy)
         self.set_proxy.clicked.connect(self.setproxy)
         self.setTabText(4, "Proxy")
+        self.setTabIcon(4, QtGui.QIcon('assets/proxy_server.png'))
         self.tab5.setLayout(layout)
 
     def setproxy(self):
