@@ -1,6 +1,5 @@
 import sys
 
-import requests
 import tweepy
 import apiconnector
 import sqlite3
@@ -373,19 +372,9 @@ class application(QTabWidget):
         self.proxy_box.setPlaceholderText("http://10.10.10.10:8000")
         layout.addRow(self.proxy_lab)
         layout.addRow(self.set_proxy)
-        self.set_proxy.clicked.connect(self.setproxy)
         self.setTabText(4, "Proxy")
         self.setTabIcon(4, QtGui.QIcon('assets/proxy_server.png'))
         self.tab5.setLayout(layout)
-
-    def setproxy(self):
-        try:
-            proxy=self.proxy_box.text()
-            prox = {"http": proxy, "https": proxy}
-            print(proxy)
-            requests.get("http://api.twitter.com", proxies=prox)
-        except:
-            self.proxy_lab.setText("<font color='red'>Invalid address</font>")
 
 def main():
     app = QApplication(sys.argv)
