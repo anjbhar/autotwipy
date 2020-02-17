@@ -25,14 +25,12 @@ class application(QTabWidget):
         self.tab2 = QWidget()
         self.tab3 = QWidget()
         self.tab4 = QWidget()
-        self.tab5 = QWidget()
         self.resize(640, 400)
 
         self.addTab(self.tab1, "Tab 1")
         self.addTab(self.tab2, "Tab 2")
         self.addTab(self.tab3, "Tab 3")
         self.addTab(self.tab4, "Tab 4")
-        self.addTab(self.tab5, "Tab 5")
         # tab set keys
         self.h_box_key = QHBoxLayout()
         self.change_key_b = QPushButton("Edit keys")
@@ -74,18 +72,13 @@ class application(QTabWidget):
         # tab help
         self.help_box = QPlainTextEdit()
 
-        #tab proxy
-        self.proxy_box = QLineEdit()
-        self.proxy_lab = QLabel()
-        self.proxy_lab.setAlignment(Qt.AlignCenter)
-        self.set_proxy = QPushButton("Set Proxy")
+
 
         # tabs
         self.tab1UI()
         self.tab2UI()
         self.tab3UI()
         self.tab4UI()
-        self.tab5UI()
 
         self.setWindowTitle("Optumize")
         self.setWindowIcon(QtGui.QIcon('assets/oo.png'))
@@ -366,15 +359,6 @@ class application(QTabWidget):
         self.setTabIcon(3, QtGui.QIcon('assets/help.png'))
         self.tab4.setLayout(layout)
 
-    def tab5UI(self):
-        layout = QFormLayout()
-        layout.addRow("Proxy address", self.proxy_box)
-        self.proxy_box.setPlaceholderText("http://10.10.10.10:8000")
-        layout.addRow(self.proxy_lab)
-        layout.addRow(self.set_proxy)
-        self.setTabText(4, "Proxy")
-        self.setTabIcon(4, QtGui.QIcon('assets/proxy_server.png'))
-        self.tab5.setLayout(layout)
 
 def main():
     app = QApplication(sys.argv)
