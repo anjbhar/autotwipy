@@ -7,7 +7,8 @@ from PySide2 import QtGui
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import QLabel, QApplication, QTabWidget, QWidget, QFormLayout, \
-    QLineEdit, QPushButton, QPlainTextEdit, QComboBox, QSpinBox, QHBoxLayout, QProgressBar, QMessageBox
+    QLineEdit, QPushButton, QPlainTextEdit, QComboBox, QSpinBox, QHBoxLayout, QProgressBar, QMessageBox, \
+    QCalendarWidget, QDateTimeEdit, QTableView
 
 from follow import FollowThread
 from unfollow import UnfollowThread
@@ -25,12 +26,15 @@ class application(QTabWidget):
         self.tab2 = QWidget()
         self.tab3 = QWidget()
         self.tab4 = QWidget()
+        self.tab5 = QWidget()
         self.resize(640, 400)
 
         self.addTab(self.tab1, "Tab 1")
         self.addTab(self.tab2, "Tab 2")
         self.addTab(self.tab3, "Tab 3")
         self.addTab(self.tab4, "Tab 4")
+        self.addTab(self.tab5, "Tab 5")
+
         # tab set keys
         self.h_box_key = QHBoxLayout()
         self.change_key_b = QPushButton("Edit keys")
@@ -71,14 +75,19 @@ class application(QTabWidget):
 
         # tab help
         self.help_box = QPlainTextEdit()
+        self.help_label = QLabel("<a href='http://Optumsense.com/'>http://Optumsense.com/</a>")
 
-
-
+        #tab schedule
+        self.tweet_box = QPlainTextEdit()
+        self.date_time = QDateTimeEdit(QDateTime.currentDateTime())
+        self.schedule_but = QPushButton("Schedule Tweet")
+        self.schedule_table = QTableView()
         # tabs
         self.tab1UI()
         self.tab2UI()
         self.tab3UI()
         self.tab4UI()
+        self.tab5UI()
 
         self.setWindowTitle("Optumize")
         self.setWindowIcon(QtGui.QIcon('assets/oo.png'))
@@ -86,6 +95,7 @@ class application(QTabWidget):
         # threads
         self.follow_thread = None
         self.unfollow_thread = None
+        self.schedule_thread = None
 
         # db
         cursor = self.db.cursor()
@@ -173,7 +183,6 @@ class application(QTabWidget):
             self.link_result.setText("<font color='red'>Configure access keys in set keys tab</font>")
             return
         if self.follow_thread is not None:
-            #self.link_result.setText("<font color='red'>Please wait on other script or cancel</font>")
             return
         link = self.link_box.text()
         id_tweet = link.split("/")[-1]
@@ -203,7 +212,6 @@ class application(QTabWidget):
             self.link_result.setText("<font color='red'>Configure access keys in set keys tab</font>")
             return
         if self.follow_thread is not None:
-            #self.link_result.setText("<font color='red'>Please wait on other script or cancel</font>")
             return
         handle = self.link_box.text()
         if handle == '':
@@ -281,6 +289,21 @@ class application(QTabWidget):
 
     def tab3UI(self):
         layout = QFormLayout()
+        layout.addWidget(self.tweet_box)
+        self.tweet_box.setMaximumHeight(150)
+        self.tweet_box.setPlaceholderText("Tweet contents")
+        layout.addRow(self.date_time)
+        self.date_time.setCalendarPopup(True)
+        layout.addRow(self.schedule_but)
+        layout.addWidget(self.schedule_table)
+        self.setTabText(2, "Schedule Tweet")
+        self.setTabIcon(2, QtGui.QIcon('assets/calendar.png'))
+        self.tab3.setLayout(layout)
+
+
+
+    def tab4UI(self):
+        layout = QFormLayout()
         layout.addRow("API key", self.edit_1)
         layout.addRow("API key secret", self.edit_2)
         layout.addRow("Auth token", self.edit_3)
@@ -306,9 +329,9 @@ class application(QTabWidget):
         self.follower_info.setAlignment(Qt.AlignCenter)
         layout.addRow(self.ready_lab)
         self.ready_lab.setAlignment(Qt.AlignCenter)
-        self.setTabText(2, "Settings")
-        self.setTabIcon(2, QtGui.QIcon('assets/settings.png'))
-        self.tab3.setLayout(layout)
+        self.setTabText(3, "Settings")
+        self.setTabIcon(3, QtGui.QIcon('assets/settings.png'))
+        self.tab4.setLayout(layout)
 
     def change_keys(self):
         self.set_button.setEnabled(True)
@@ -351,13 +374,13 @@ class application(QTabWidget):
         except:
             return None
 
-    def tab4UI(self):
+    def tab5UI(self):
         layout = QFormLayout()
-        layout.addWidget(self.help_box)
-        self.help_box.setReadOnly(True)
-        self.setTabText(3, "Help")
-        self.setTabIcon(3, QtGui.QIcon('assets/help.png'))
-        self.tab4.setLayout(layout)
+        layout.addRow("Website", self.help_label)
+        self.help_label.setOpenExternalLinks(True)
+        self.setTabText(4, "Help")
+        self.setTabIcon(4, QtGui.QIcon('assets/help.png'))
+        self.tab5.setLayout(layout)
 
 
 def main():
