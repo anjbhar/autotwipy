@@ -81,6 +81,7 @@ class application(QTabWidget):
         self.tweet_box = QPlainTextEdit()
         self.date_time = QDateTimeEdit(QDateTime.currentDateTime())
         self.schedule_but = QPushButton("Schedule Tweet")
+        self.schedule_info = QLabel()
         self.schedule_table = QTableView()
         # tabs
         self.tab1UI()
@@ -294,13 +295,42 @@ class application(QTabWidget):
         self.tweet_box.setPlaceholderText("Tweet contents")
         layout.addRow(self.date_time)
         self.date_time.setCalendarPopup(True)
+        layout.addRow(self.schedule_info)
         layout.addRow(self.schedule_but)
+        self.schedule_but.clicked.connect(self.schedule_tweet)
         layout.addWidget(self.schedule_table)
         self.setTabText(2, "Schedule Tweet")
         self.setTabIcon(2, QtGui.QIcon('assets/calendar.png'))
         self.tab3.setLayout(layout)
 
+    def schedule_tweet(self):
+        tweet_contents = self.tweet_box.toPlainText()
+        if (len(tweet_contents) == 0):
+            print("length of tweet is 0")
+            self.schedule_info.setText("length of tweet is 0")
+            return
+        elif (len(tweet_contents) >= 280):
+            self.schedule_info.setText("Tweet char limit exceeded")
+            return
+        if self.bot is None:
+            self.schedule_info.setText("<font color='red'>Configure access keys in set keys tab</font>")
+            return
+        if self.schedule_thread is not None:
+            return
+        datetime = self.date_time.text()
+        print(datetime)
+        return
+        try:
+            self.schedule_thread = FollowThread(self.bot, tweet_contents, datetime)
+            self.follow_thread.start()
+            self.connect(self.schedule_thread, SIGNAL("finished()"), self.done_schedule)
 
+        except:
+            self.follow_button.setEnabled(True)
+            self.link_result.setText("<font color='red'>Could not find user</font>")
+
+    def done_schedule(self):
+        print("done scheduler")
 
     def tab4UI(self):
         layout = QFormLayout()
