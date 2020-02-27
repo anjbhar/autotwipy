@@ -13,6 +13,8 @@ from PySide2.QtWidgets import QLabel, QApplication, QTabWidget, QWidget, QFormLa
 from follow import FollowThread
 from unfollow import UnfollowThread
 
+from src.main.python.schedule import ScheduleThread
+
 
 class application(QTabWidget):
     bot = 0
@@ -81,7 +83,14 @@ class application(QTabWidget):
         self.tweet_box = QPlainTextEdit()
         self.date_time = QDateTimeEdit(QDateTime.currentDateTime())
         self.schedule_but = QPushButton("Schedule Tweet")
+        self.schedule_info = QLabel()
         self.schedule_table = QTableView()
+
+        # threads
+        self.follow_thread = None
+        self.unfollow_thread = None
+        self.schedule_thread = None
+
         # tabs
         self.tab1UI()
         self.tab2UI()
@@ -91,11 +100,6 @@ class application(QTabWidget):
 
         self.setWindowTitle("Optumize")
         self.setWindowIcon(QtGui.QIcon('assets/oo.png'))
-
-        # threads
-        self.follow_thread = None
-        self.unfollow_thread = None
-        self.schedule_thread = None
 
         # db
         cursor = self.db.cursor()
@@ -294,13 +298,37 @@ class application(QTabWidget):
         self.tweet_box.setPlaceholderText("Tweet contents")
         layout.addRow(self.date_time)
         self.date_time.setCalendarPopup(True)
+        layout.addRow(self.schedule_info)
         layout.addRow(self.schedule_but)
+        self.schedule_but.clicked.connect(self.schedule_tweet)
         layout.addWidget(self.schedule_table)
         self.setTabText(2, "Schedule Tweet")
         self.setTabIcon(2, QtGui.QIcon('assets/calendar.png'))
         self.tab3.setLayout(layout)
 
+    def schedule_tweet(self):
+        tweet_contents = self.tweet_box.toPlainText()
+        if (len(tweet_contents) == 0):
+            print("length of tweet is 0")
+            self.schedule_info.setText("length of tweet is 0")
+            return
+        elif (len(tweet_contents) >= 280):
+            self.schedule_info.setText("Tweet char limit exceeded")
+            return
+        if self.bot is None:
+            self.schedule_info.setText("<font color='red'>Configure access keys in set keys tab</font>")
+            return
+        datetime = self.date_time.text()
+        try:
+            print("done")
+            self.schedule_thread.start()
+            self.schedule_thread.add_tweet(tweet_contents, datetime)
+        except:
+            self.follow_button.setEnabled(True)
+            self.link_result.setText("<font color='red'>Could not find user</font>")
 
+    def done_schedule(self):
+        print("done scheduler")
 
     def tab4UI(self):
         layout = QFormLayout()
@@ -354,6 +382,7 @@ class application(QTabWidget):
             cursor.execute('''INSERT INTO keys(one, two, three, four)
                   VALUES(?,?,?,?)''', (one, two, three, four))
             self.db.commit()
+            self.schedule_thread = ScheduleThread(self.bot)
         except:
             print("Could not authenticate you")
             self.result.setText("<font color='red'>Could not authenticate you</font>")
