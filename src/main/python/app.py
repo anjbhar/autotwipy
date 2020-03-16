@@ -13,7 +13,7 @@ from PySide2.QtWidgets import QLabel, QApplication, QTabWidget, QWidget, QFormLa
 from follow import FollowThread
 from unfollow import UnfollowThread
 
-from src.main.python.schedule import ScheduleThread
+from schedule import ScheduleThread
 
 
 class application(QTabWidget):
